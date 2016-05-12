@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,6 +34,13 @@ public class ListContactsActivity extends CodeKampActivity {
     private CustomAdapter mAdapter;
     private List<Contact> mContactsList;
     private int mPageNumberToFetch = 1;
+
+    private int previousTotal = 0; // The total number of items in the dataset after the last load
+    private boolean loading = true; // True if we are still waiting for the last set of data to load.
+    private int visibleThreshold = 1; // The minimum amount of items to have below your current scroll position before loading more.
+    int firstVisibleItem, visibleItemCount, totalItemCount;
+
+    private LinearLayoutManager mLayoutManager;
     @BindView(R.id.list_contacts_recycler_view)
     RecyclerView mRecyclerView;
 
@@ -43,30 +51,55 @@ public class ListContactsActivity extends CodeKampActivity {
         ButterKnife.bind(this);
 
         mAccessToken = getIntent().getStringExtra(LoginActivity.ACCESS_TOKEN_CONSTANT);
-//        mContactsList = new ArrayList<Contact>();
+        mContactsList = new ArrayList<Contact>();
+        mLayoutManager = new LinearLayoutManager(ListContactsActivity.this);
+        mRecyclerView.setLayoutManager(mLayoutManager);
+        mAdapter = new CustomAdapter(ListContactsActivity.this, mContactsList);
+        mRecyclerView.setAdapter(mAdapter);
 
+//        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+//            @Override
+//            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+//                super.onScrolled(recyclerView, dx, dy);
+//                visibleItemCount = recyclerView.getChildCount();
+//                totalItemCount = mLayoutManager.getItemCount();
+//                firstVisibleItem = mLayoutManager.findFirstVisibleItemPosition();
+//
+//                if (loading) {
+//                    if (totalItemCount > previousTotal) {
+//                        loading = false;
+//                        previousTotal = totalItemCount;
+//                    }
+//                }
+//                if (!loading && (totalItemCount - visibleItemCount)
+//                        <= (firstVisibleItem + visibleThreshold)) {
+//                    // End has been reached
+//
+//                    // Do something
+//                    mPageNumberToFetch++;
+//                    fetchContactsList(mAccessToken, mPageNumberToFetch);
+//                    loading = true;
+//                }
+//            }
+//        });
 
+        fetchContactsList(mAccessToken, mPageNumberToFetch);
 
-        fetchContactsList(mAccessToken,mPageNumberToFetch);
     }
 
-    private void fetchContactsList(String accessToken,int pageNumber){
+    private void fetchContactsList(String accessToken, int pageNumber) {
         CodeKampServiceDecorator service = new CodeKampServiceDecorator(accessToken);
 
         service.listAllContacts(pageNumber, new Callback<ListAllContact<Contact>>() {
             @Override
             public void onSuccess(ListAllContact<Contact> response) {
-                Toast.makeText(ListContactsActivity.this,"Success!",Toast.LENGTH_SHORT).show();
-                mContactsList = response.getData();
-                mAdapter = new CustomAdapter(ListContactsActivity.this, mContactsList);
-                mRecyclerView.setLayoutManager(new LinearLayoutManager(ListContactsActivity.this));
-                mRecyclerView.setAdapter(mAdapter);
+                mContactsList.addAll(response.getData());
                 mAdapter.notifyDataSetChanged();
             }
 
             @Override
             public void onFailure(Error error) {
-                Toast.makeText(ListContactsActivity.this,"Failure!",Toast.LENGTH_SHORT).show();
+                Toast.makeText(ListContactsActivity.this, "Failure!", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -83,7 +116,7 @@ public class ListContactsActivity extends CodeKampActivity {
 
         public CustomViewHolder(View itemView) {
             super(itemView);
-            ButterKnife.bind(this,itemView);
+            ButterKnife.bind(this, itemView);
         }
     }
 
@@ -101,7 +134,7 @@ public class ListContactsActivity extends CodeKampActivity {
 
         @Override
         public CustomViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            return new CustomViewHolder(inflater.inflate(R.layout.view_holder_custom, parent,false));
+            return new CustomViewHolder(inflater.inflate(R.layout.view_holder_custom, parent, false));
         }
 
         @Override
