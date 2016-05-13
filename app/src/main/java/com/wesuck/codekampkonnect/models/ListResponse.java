@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Created by User on 10-05-2016.
  */
-public class ListAllContact<T> {
+public class ListResponse<T> {
 
     @SerializedName("data")
     @Expose

@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,11 +13,10 @@ import android.widget.Toast;
 
 import com.wesuck.codekampkonnect.models.Contact;
 import com.wesuck.codekampkonnect.models.Error;
-import com.wesuck.codekampkonnect.models.ListAllContact;
+import com.wesuck.codekampkonnect.models.ListResponse;
 import com.wesuck.codekampkonnect.services.codekamp.Callback;
 import com.wesuck.codekampkonnect.services.codekamp.CodeKampServiceDecorator;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,7 +28,7 @@ import butterknife.ButterKnife;
  */
 public class ListContactsActivity extends CodeKampActivity {
 
-    private String mAccessToken;
+    public static String mAccessToken;
     private CustomAdapter mAdapter;
     private List<Contact> mContactsList;
     private int mPageNumberToFetch = 1;
@@ -57,31 +55,31 @@ public class ListContactsActivity extends CodeKampActivity {
         mAdapter = new CustomAdapter(ListContactsActivity.this, mContactsList);
         mRecyclerView.setAdapter(mAdapter);
 
-//        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-//            @Override
-//            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-//                super.onScrolled(recyclerView, dx, dy);
-//                visibleItemCount = recyclerView.getChildCount();
-//                totalItemCount = mLayoutManager.getItemCount();
-//                firstVisibleItem = mLayoutManager.findFirstVisibleItemPosition();
-//
-//                if (loading) {
-//                    if (totalItemCount > previousTotal) {
-//                        loading = false;
-//                        previousTotal = totalItemCount;
-//                    }
-//                }
-//                if (!loading && (totalItemCount - visibleItemCount)
-//                        <= (firstVisibleItem + visibleThreshold)) {
-//                    // End has been reached
-//
-//                    // Do something
-//                    mPageNumberToFetch++;
-//                    fetchContactsList(mAccessToken, mPageNumberToFetch);
-//                    loading = true;
-//                }
-//            }
-//        });
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                visibleItemCount = recyclerView.getChildCount();
+                totalItemCount = mLayoutManager.getItemCount();
+                firstVisibleItem = mLayoutManager.findFirstVisibleItemPosition();
+
+                if (loading) {
+                    if (totalItemCount > previousTotal) {
+                        loading = false;
+                        previousTotal = totalItemCount;
+                    }
+                }
+                if (!loading && (totalItemCount - visibleItemCount)
+                        <= (firstVisibleItem + visibleThreshold)) {
+                    // End has been reached
+
+                    // Do something
+                    mPageNumberToFetch++;
+                    fetchContactsList(mAccessToken, mPageNumberToFetch);
+                    loading = true;
+                }
+            }
+        });
 
         fetchContactsList(mAccessToken, mPageNumberToFetch);
 
@@ -90,9 +88,9 @@ public class ListContactsActivity extends CodeKampActivity {
     private void fetchContactsList(String accessToken, int pageNumber) {
         CodeKampServiceDecorator service = new CodeKampServiceDecorator(accessToken);
 
-        service.listAllContacts(pageNumber, new Callback<ListAllContact<Contact>>() {
+        service.listAllContacts(pageNumber, new Callback<ListResponse<Contact>>() {
             @Override
-            public void onSuccess(ListAllContact<Contact> response) {
+            public void onSuccess(ListResponse<Contact> response) {
                 mContactsList.addAll(response.getData());
                 mAdapter.notifyDataSetChanged();
             }
@@ -109,14 +107,25 @@ public class ListContactsActivity extends CodeKampActivity {
     }
 
     //View Holder Class
-    public class CustomViewHolder extends RecyclerView.ViewHolder {
+    public class CustomViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         @BindView(R.id.view_holder_custom_text_view)
         TextView mTextView;
 
+        public int contactID;
+
         public CustomViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
+            itemView.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+
+            Intent i = ContactDetailActivity.getMyIntent(ListContactsActivity.this);
+            i.putExtra(ContactDetailActivity.CONTACT_ID_CONSTANT, contactID);
+            startActivity(i);
         }
     }
 
@@ -140,6 +149,7 @@ public class ListContactsActivity extends CodeKampActivity {
         @Override
         public void onBindViewHolder(CustomViewHolder holder, int position) {
             holder.mTextView.setText(dataList.get(position).getFirstName() + " " + dataList.get(position).getLastName());
+            holder.contactID = dataList.get(position).getId();
         }
 
         @Override

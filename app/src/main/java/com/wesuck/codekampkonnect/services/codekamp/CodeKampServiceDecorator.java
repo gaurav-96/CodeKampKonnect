@@ -4,7 +4,7 @@ import android.util.Log;
 
 import com.wesuck.codekampkonnect.models.Contact;
 import com.wesuck.codekampkonnect.models.Error;
-import com.wesuck.codekampkonnect.models.ListAllContact;
+import com.wesuck.codekampkonnect.models.ListResponse;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -55,8 +55,8 @@ public class CodeKampServiceDecorator {
         return BEARER + " " + this.accessToken;
     }
 
-    public void listAllContacts(int pageNumber,Callback<ListAllContact<Contact>> callback) {
-        codeKampServiceInterface.listContacts(getAccessTokenHeader(),pageNumber).enqueue(new CallbackHandler<ListAllContact<Contact>>(retrofit,callback){
+    public void listAllContacts(int pageNumber,Callback<ListResponse<Contact>> callback) {
+        codeKampServiceInterface.listContacts(getAccessTokenHeader(),pageNumber).enqueue(new CallbackHandler<ListResponse<Contact>>(retrofit,callback){
 
         });
     }
@@ -65,8 +65,12 @@ public class CodeKampServiceDecorator {
         codeKampServiceInterface.login("piyush0mishra@gmail.com","secret").enqueue(new CallbackHandler<AccessToken>(retrofit,callback));
     }
 
-    public void fetchContact(int contactID,Callback<Contact> callback){
-        codeKampServiceInterface.fetchContact(getAccessTokenHeader(),contactID).enqueue(new CallbackHandler<Contact>(retrofit,callback));
+    public void fetchContact(int contactID,Callback<ContactDetail> callback){
+        codeKampServiceInterface.fetchContact(getAccessTokenHeader(),contactID).enqueue(new CallbackHandler<ContactDetail>(retrofit,callback));
+    }
+
+    public void fetchActions(int pageNumber,int contactID,Callback<ListResponse<SingleAction>> callback){
+        codeKampServiceInterface.fetchActions(getAccessTokenHeader(),pageNumber,contactID).enqueue(new CallbackHandler<ListResponse<SingleAction>>(retrofit,callback));
     }
 
 

@@ -17,8 +17,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".CodeKampActivity"></activity>
-        <activity android:name=".ListContactsActivity"></activity>
+        <activity android:name=".CodeKampActivity" />
+        <activity android:name=".ListContactsActivity" />
+        <activity android:name=".ContactDetailActivity" />
     </application>
 
 </manifest>

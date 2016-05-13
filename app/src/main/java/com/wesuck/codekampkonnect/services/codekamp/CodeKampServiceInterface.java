@@ -2,15 +2,13 @@ package com.wesuck.codekampkonnect.services.codekamp;
 
 import com.wesuck.codekampkonnect.models.AccessToken;
 import com.wesuck.codekampkonnect.models.Contact;
-import com.wesuck.codekampkonnect.models.ListAllContact;
+import com.wesuck.codekampkonnect.models.ContactDetail;
+import com.wesuck.codekampkonnect.models.ListResponse;
+import com.wesuck.codekampkonnect.models.SingleAction;
 
 import retrofit2.Call;
-import retrofit2.http.Body;
-import retrofit2.http.Field;
-import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
-import retrofit2.http.POST;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
@@ -20,13 +18,16 @@ import retrofit2.http.Query;
 public interface CodeKampServiceInterface {
 
     @GET("contacts")
-    Call<ListAllContact<Contact>> listContacts(@Header("Authorization") String accessToken, @Query("page") int page);
+    Call<ListResponse<Contact>> listContacts(@Header("Authorization") String accessToken, @Query("page") int page);
 
     @GET("authenticate")
     Call<AccessToken> login(@Query("email") String email, @Query("password") String password);
 
     @GET("contacts/{id}")
-    Call<Contact> fetchContact(@Header("Authorization") String accessToken, @Path("id") int contactID);
+    Call<ContactDetail> fetchContact(@Header("Authorization") String accessToken, @Path("id") int contactID);
+
+    @GET("actions")
+    Call<ListResponse<SingleAction>> fetchActions(@Header("Authorization") String accessToken, @Query("page")int pageNumber, @Query("contact_id")int contactID);
 
     //@FormUrlEncoded
     //@POST("contacts")
